@@ -1,0 +1,32 @@
+import serial
+import time
+
+def parse_data(line):
+    try:
+        data = line.strip().split(',')
+        result = {}
+        for item in data:
+            key, value = item.split(':')
+            result[key] = value
+        return result
+    except:
+        return None
+
+def log_data():
+    try:
+        ser = serial.Serial('COM3', 9600, timeout=2)  # Change COM port if needed
+        time.sleep(2)
+        while True:
+            if ser.in_waiting:
+                line = ser.readline().decode().strip()
+                data = parse_data(line)
+                if data:
+                    print(f"[{time.strftime('%H:%M:%S')}] HR: {data['HeartRate']} | Temp: {data['Temp']}°C | Lat: {data['Lat']} | Lng: {data['Lng']}")
+    except KeyboardInterrupt:
+        print("\nStopping...")
+    finally:
+        if 'ser' in locals():
+            ser.close()
+
+if __name__ == "__main__":
+    log_data()
