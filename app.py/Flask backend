@@ -1,0 +1,58 @@
+from flask import Flask, jsonify, render_template
+import serial
+import threading
+import time
+
+app = Flask(__name__)
+
+# Serial setup (adjust COM port for your system)
+SERIAL_PORT = 'COM3'  # Use '/dev/ttyACM0' or similar on Linux/macOS
+BAUD_RATE = 9600
+
+latest_data = {
+    "HeartRate": "--",
+    "Temp": "--",
+    "Lat": "--",
+    "Lng": "--"
+}
+
+def parse_serial_line(line):
+    try:
+        parts = line.strip().split(',')
+        data = {}
+        for item in parts:
+            key, val = item.split(':')
+            data[key] = val
+        return data
+    except:
+        return None
+
+def read_serial_data():
+    global latest_data
+    try:
+        ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=2)
+        time.sleep(2)
+        while True:
+            if ser.in_waiting:
+                line = ser.readline().decode().strip()
+                data = parse_serial_line(line)
+                if data:
+                    latest_data.update(data)
+    except serial.SerialException:
+        print("Unable to open serial port.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+# Start serial reader in background
+threading.Thread(target=read_serial_data, daemon=True).start()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/data.json')
+def data_json():
+    return jsonify(latest_data)
+
+if __name__ == '__main__':
+    app.run(debug=True)
