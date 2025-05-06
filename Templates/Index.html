@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drone Ambulance Live Monitoring</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Drone Ambulance Medical Monitoring</h1>
+  <div class="container">
+    <div class="card">
+      <p><strong>Heart Rate:</strong> <span id="hr">--</span></p>
+      <p><strong>Temperature:</strong> <span id="temp">--</span> °C</p>
+      <p><strong>Latitude:</strong> <span id="lat">--</span></p>
+      <p><strong>Longitude:</strong> <span id="lng">--</span></p>
+    </div>
+  </div>
+
+  <script>
+    async function fetchData() {
+      try {
+        const res = await fetch('/data.json');
+        const data = await res.json();
+        document.getElementById('hr').innerText = data.HeartRate;
+        document.getElementById('temp').innerText = data.Temp;
+        document.getElementById('lat').innerText = data.Lat;
+        document.getElementById('lng').innerText = data.Lng;
+      } catch (e) {
+        console.log('Error fetching data:', e);
+      }
+    }
+
+    setInterval(fetchData, 2000);
+    fetchData(); // Initial call
+  </script>
+</body>
+</html>
