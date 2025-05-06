@@ -1,0 +1,45 @@
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
+
+#define HEART_SENSOR A0
+#define TEMP_SENSOR A1
+
+TinyGPSPlus gps;
+SoftwareSerial gpsSerial(4, 3); // RX, TX
+
+void setup() {
+  Serial.begin(9600);
+  gpsSerial.begin(9600);
+
+  pinMode(HEART_SENSOR, INPUT);
+  pinMode(TEMP_SENSOR, INPUT);
+}
+
+void loop() {
+  while (gpsSerial.available() > 0) {
+    gps.encode(gpsSerial.read());
+  }
+
+  int heartRateRaw = analogRead(HEART_SENSOR);
+  int tempRaw = analogRead(TEMP_SENSOR);
+
+  float voltage = (tempRaw / 1023.0) * 5.0;
+  float temperature = (voltage - 0.5) * 100;
+
+  Serial.print("HeartRate:");
+  Serial.print(heartRateRaw);
+  Serial.print(",Temp:");
+  Serial.print(temperature);
+
+  if (gps.location.isValid()) {
+    Serial.print(",Lat:");
+    Serial.print(gps.location.lat(), 6);
+    Serial.print(",Lng:");
+    Serial.print(gps.location.lng(), 6);
+  } else {
+    Serial.print(",Lat:N/A,Lng:N/A");
+  }
+
+  Serial.println();
+  delay(2000);
+}
